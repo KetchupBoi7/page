@@ -1315,13 +1315,20 @@ function placeRows(i) {
   const s = L.s, open = state.open, sel = state.sel[i];
   const topLimit = open ? L.barYOpen + 44 * s : 70 * s;
   const botLimit = L.vh - (open ? Math.max(48 * s, L.panelBottom - 12 * s) : 84 * s);
-  const first = (30 * OPEN_SEL + OPEN_GAP + 30 * OPEN_UN) * s, pitch = (60 * OPEN_UN + OPEN_GAP) * s;
+  // open: the list stays put from the top (first row level with the page title) and only the
+  // highlight moves; it scrolls just when a long list would run past the bottom
+  const hSel = 60 * OPEN_SEL * s, hUn = 60 * OPEN_UN * s, gap = OPEN_GAP * s;
+  const top = L.titleY - hSel / 2, n = rowEls[i].length;
+  const selMid = top + sel * (hUn + gap) + hSel / 2;
+  const end = top + hSel + (n - 1) * (hUn + gap);
+  const room = botLimit - 8 * s;
+  const shift = Math.max(Math.min(0, room - (selMid + hSel / 2 + gap + hUn)), Math.min(0, room - end));
   rowEls[i].forEach((row, j) => {
     const d = j - sel;
     let y, k;
     if (open) {
       k = d === 0 ? OPEN_SEL : OPEN_UN;
-      y = d === 0 ? L.titleY : d > 0 ? L.titleY + first + (d - 1) * pitch : L.titleY - first + (d + 1) * pitch;
+      y = shift + top + j * (hUn + gap) + (d === 0 ? hSel / 2 : d > 0 ? hSel - hUn + hUn / 2 : hUn / 2);
     } else {
       k = d === 0 ? 1 : 0.8;
       y = d === 0 ? L.selY : d > 0 ? L.selY + 73 * s + (d - 1) * 64 * s : L.prevY + (d + 1) * 64 * s;
